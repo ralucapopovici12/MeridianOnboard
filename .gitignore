@@ -1,0 +1,29 @@
+# ---- .NET ----
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+.vs/
+
+# EF Core SQLite database (regenerated + reseeded on startup)
+*.db
+*.db-shm
+*.db-wal
+
+# ---- Node / Vite ----
+node_modules/
+frontend/dist/
+*.local
+
+# ---- Logs / env ----
+*.log
+.env
+.env.*
+!.env.example
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Claude Code local settings ----
+.claude/
