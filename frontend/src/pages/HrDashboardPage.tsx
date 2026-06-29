@@ -12,122 +12,114 @@ export function HrDashboardPage() {
   const { setCurrentId } = useCurrentEmployee()
   const navigate = useNavigate()
 
-  if (loading) return <p className="text-sm text-slate-500">Loading dashboard…</p>
-  if (error) return <p className="text-sm text-rose-600">{error}</p>
+  if (loading) return <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading…</p>
+  if (error)   return <p style={{ color: 'var(--err)',       fontSize: 14 }}>{error}</p>
 
   const hires = data ?? []
-  const avgProgress =
-    hires.length === 0
-      ? 0
-      : Math.round(hires.reduce((n, h) => n + h.progress.percent, 0) / hires.length)
+  const avg = hires.length
+    ? Math.round(hires.reduce((s, h) => s + h.progress.percent, 0) / hires.length)
+    : 0
   const startingSoon = hires.filter((h) => h.daysToStart >= 0).length
 
-  function openChecklist(employeeId: number) {
-    setCurrentId(employeeId)
-    navigate('/')
-  }
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">HR Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Every current new hire and how far through onboarding they are — one screen
-          for Meridian&apos;s single HR person.
-        </p>
+    <div className="fade-up">
+      {/* Header */}
+      <div className="page-header-row">
+        <div>
+          <h1 className="page-title">HR Dashboard</h1>
+          <p className="page-sub">Onboarding progress across all new hires.</p>
+        </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Stat icon={<Users className="h-5 w-5" />}        label="New hires onboarding" value={hires.length}      delay={0} />
-        <Stat icon={<TrendingUp className="h-5 w-5" />}   label="Average progress"     value={`${avgProgress}%`} delay={100} />
-        <Stat icon={<CalendarClock className="h-5 w-5" />} label="Yet to start"        value={startingSoon}       delay={200} />
+      {/* KPI strip */}
+      <div className="kpi-grid">
+        <KpiCard value={hires.length} label="Hires onboarding" Icon={Users}        delay={0} />
+        <KpiCard value={`${avg}%`}    label="Average progress" Icon={TrendingUp}   delay={60} />
+        <KpiCard value={startingSoon} label="Yet to start"     Icon={CalendarClock} delay={120} />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        {hires.map((hire) => (
-          <HireRow key={hire.employeeId} hire={hire} onOpen={openChecklist} />
-        ))}
+      {/* Table */}
+      <div className="hire-table anim-slide-up delay-200">
+        <div className="hire-table__head">
+          <span className="hire-table__head-title">New Hires</span>
+          <span className="pill pill--accent">{hires.length} active</span>
+        </div>
+
         {hires.length === 0 && (
-          <p className="p-6 text-center text-sm text-slate-500">
-            No one is currently onboarding.
-          </p>
+          <div className="empty-state">
+            <p>No one is currently onboarding.</p>
+          </div>
         )}
+
+        {hires.map((hire) => (
+          <HireRow
+            key={hire.employeeId}
+            hire={hire}
+            onOpen={(id) => { setCurrentId(id); navigate('/') }}
+          />
+        ))}
       </div>
     </div>
   )
 }
 
-function Stat({
-  icon,
-  label,
-  value,
-  delay = 0,
+function KpiCard({
+  value, label, Icon, delay,
 }: {
-  icon: React.ReactNode
-  label: string
   value: React.ReactNode
-  delay?: number
+  label: string
+  Icon: React.ElementType
+  delay: number
 }) {
   return (
-    <div
-      className="stat-card anim-slide-up"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <span className="icon-btn flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
-        {icon}
-      </span>
-      <div>
-        <div className="text-2xl font-bold text-slate-800">{value}</div>
-        <div className="text-xs text-slate-500">{label}</div>
-      </div>
+    <div className="kpi-card anim-slide-up" style={{ animationDelay: `${delay}ms` }}>
+      <div className="kpi-card__label">{label}</div>
+      <div className="kpi-card__value">{value}</div>
+      <Icon size={28} className="kpi-card__icon" />
     </div>
   )
 }
 
 function HireRow({
-  hire,
-  onOpen,
+  hire, onOpen,
 }: {
   hire: HrOverviewItem
-  onOpen: (employeeId: number) => void
+  onOpen: (id: number) => void
 }) {
   const upcoming = hire.daysToStart >= 0
   return (
-    <div className="flex flex-wrap items-center gap-4 border-b border-slate-100 px-4 py-4 last:border-b-0">
+    <div className="hire-table__row">
       <Avatar name={hire.fullName} size="md" />
 
-      <div className="min-w-[10rem] flex-1">
-        <div className="font-semibold text-slate-800">{hire.fullName}</div>
-        <div className="text-sm text-slate-500">
+      <div style={{ flex: 1, minWidth: 140 }}>
+        <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+          {hire.fullName}
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
           {hire.role} · {hire.department}
         </div>
       </div>
 
-      <div className="flex flex-col items-start gap-1">
-        <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-            upcoming ? 'bg-amber-50 text-amber-700' : 'bg-sky-50 text-sky-700'
-          }`}
-        >
-          {hire.status}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'flex-start' }}>
+        <span className={upcoming ? 'pill pill--warn' : 'pill pill--accent'}>{hire.status}</span>
+        <span style={{ fontSize: 11, color: 'var(--text-subtle)' }}>
+          Next: {hire.currentPhaseLabel}
         </span>
-        <span className="text-xs text-slate-400">Next: {hire.currentPhaseLabel}</span>
       </div>
 
-      <div className="w-40">
-        <div className="mb-1 flex justify-between text-xs text-slate-500">
-          <span>{hire.progress.percent}%</span>
-          <span>
-            {hire.progress.completed}/{hire.progress.total}
-          </span>
+      <div style={{ width: 148 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 5 }}>
+          <span style={{ fontWeight: 600 }}>{hire.progress.percent}%</span>
+          <span style={{ color: 'var(--text-subtle)' }}>{hire.progress.completed}/{hire.progress.total}</span>
         </div>
         <ProgressBar percent={hire.progress.percent} />
       </div>
 
       <button
         type="button"
+        className="btn-ghost"
+        style={{ marginLeft: 'auto', fontSize: 12 }}
         onClick={() => onOpen(hire.employeeId)}
-        className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
       >
         View checklist
       </button>

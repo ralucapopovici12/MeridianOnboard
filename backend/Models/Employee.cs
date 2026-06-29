@@ -20,5 +20,8 @@ public class Employee
     /// <summary>What the person is currently working on — answers "who do I ask about X?".</summary>
     public string? CurrentProject { get; set; }
 
+    /// <summary>Comma-separated in-office day numbers (1=Mon … 5=Fri), e.g. "1,2,3". Null means not set yet.</summary>
+    public string? OfficeDays { get; set; }
+
     public List<OnboardingTask> Tasks { get; set; } = new();
 }

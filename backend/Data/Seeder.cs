@@ -32,37 +32,47 @@ public static class Seeder
             FirstName = "Sarah", LastName = "Chen", Email = "sarah.chen@meridian.com",
             Role = "People Operations Lead", Department = hr, IsHR = true,
             StartDate = today.AddYears(-4), CurrentProject = "Onboarding revamp",
+            OfficeDays = "1,2,3",
         };
         var existing = new List<Employee>
         {
             sarah,
             new() { FirstName = "Marcus", LastName = "Johnson", Email = "marcus.johnson@meridian.com",
                 Role = "Engineering Manager", Department = engineering,
-                StartDate = today.AddYears(-5), CurrentProject = "Platform reliability" },
+                StartDate = today.AddYears(-5), CurrentProject = "Platform reliability",
+                OfficeDays = "1,2,4" },
             new() { FirstName = "Priya", LastName = "Patel", Email = "priya.patel@meridian.com",
                 Role = "Senior Backend Engineer", Department = engineering,
-                StartDate = today.AddYears(-3), CurrentProject = "Payments API" },
+                StartDate = today.AddYears(-3), CurrentProject = "Payments API",
+                OfficeDays = "2,3,4" },
             new() { FirstName = "David", LastName = "Kim", Email = "david.kim@meridian.com",
                 Role = "Frontend Engineer", Department = engineering,
-                StartDate = today.AddYears(-2), CurrentProject = "Customer portal redesign" },
+                StartDate = today.AddYears(-2), CurrentProject = "Customer portal redesign",
+                OfficeDays = "1,3,5" },
             new() { FirstName = "Elena", LastName = "Rossi", Email = "elena.rossi@meridian.com",
                 Role = "DevOps Engineer", Department = engineering,
-                StartDate = today.AddYears(-2), CurrentProject = "CI/CD migration" },
+                StartDate = today.AddYears(-2), CurrentProject = "CI/CD migration",
+                OfficeDays = "1,2,5" },
             new() { FirstName = "James", LastName = "Wilson", Email = "james.wilson@meridian.com",
                 Role = "Sales Director", Department = sales,
-                StartDate = today.AddYears(-6), CurrentProject = "Enterprise pipeline" },
+                StartDate = today.AddYears(-6), CurrentProject = "Enterprise pipeline",
+                OfficeDays = "2,3,4" },
             new() { FirstName = "Olivia", LastName = "Martinez", Email = "olivia.martinez@meridian.com",
                 Role = "Account Executive", Department = sales,
-                StartDate = today.AddYears(-1), CurrentProject = "EMEA accounts" },
+                StartDate = today.AddYears(-1), CurrentProject = "EMEA accounts",
+                OfficeDays = "1,3,4" },
             new() { FirstName = "Tom", LastName = "Anderson", Email = "tom.anderson@meridian.com",
                 Role = "Marketing Lead", Department = marketing,
-                StartDate = today.AddYears(-3), CurrentProject = "Q3 product launch" },
+                StartDate = today.AddYears(-3), CurrentProject = "Q3 product launch",
+                OfficeDays = "2,3,5" },
             new() { FirstName = "Nina", LastName = "Schmidt", Email = "nina.schmidt@meridian.com",
                 Role = "Content Strategist", Department = marketing,
-                StartDate = today.AddYears(-1), CurrentProject = "Brand refresh" },
+                StartDate = today.AddYears(-1), CurrentProject = "Brand refresh",
+                OfficeDays = "1,2,3" },
             new() { FirstName = "Robert", LastName = "Brown", Email = "robert.brown@meridian.com",
                 Role = "Finance Manager", Department = finance,
-                StartDate = today.AddYears(-4), CurrentProject = "Annual budget planning" },
+                StartDate = today.AddYears(-4), CurrentProject = "Annual budget planning",
+                OfficeDays = "2,4,5" },
         };
         db.Employees.AddRange(existing);
 
@@ -79,12 +89,14 @@ public static class Seeder
             FirstName = "Maya", LastName = "Thompson", Email = "maya.thompson@meridian.com",
             Role = "Marketing Associate", Department = marketing,
             StartDate = today.AddDays(-7), CurrentProject = null,
+            OfficeDays = "1,2,3",
         };
         var liam = new Employee
         {
             FirstName = "Liam", LastName = "O'Brien", Email = "liam.obrien@meridian.com",
             Role = "Sales Development Representative", Department = sales,
             StartDate = today.AddDays(-14), CurrentProject = null,
+            OfficeDays = "1,3,5",
         };
         db.Employees.AddRange(alex, maya, liam);
 

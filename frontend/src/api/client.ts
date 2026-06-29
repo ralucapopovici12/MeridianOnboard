@@ -26,4 +26,10 @@ export const api = {
   toggleTask: (taskId: number) =>
     request<Task>(`/tasks/${taskId}/toggle`, { method: 'PATCH' }),
   getHrOverview: () => request<HrOverviewItem[]>('/hr/overview'),
+  updateSchedule: (employeeId: number, officeDays: number[]) =>
+    request<Employee>(`/employees/${employeeId}/schedule`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ officeDays }),
+    }),
 }

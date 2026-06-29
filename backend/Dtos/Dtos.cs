@@ -12,7 +12,8 @@ public record EmployeeDto(
     DateOnly StartDate,
     bool IsHR,
     string? CurrentProject,
-    bool IsNewHire);
+    bool IsNewHire,
+    int[]? OfficeDays);
 
 public record ProgressDto(int Completed, int Total, int Percent);
 
@@ -39,7 +40,10 @@ public record EmployeeChecklistDto(
     string Department,
     DateOnly StartDate,
     ProgressDto Progress,
-    IReadOnlyList<PhaseGroupDto> Groups);
+    IReadOnlyList<PhaseGroupDto> Groups,
+    int[]? OfficeDays);
+
+public record ScheduleUpdateDto(int[] OfficeDays);
 
 public record HrOverviewItemDto(
     int EmployeeId,

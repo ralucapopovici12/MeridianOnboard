@@ -13,6 +13,7 @@ export interface Employee {
   isHR: boolean
   currentProject: string | null
   isNewHire: boolean
+  officeDays: number[] | null // 1=Mon … 5=Fri; null = not set yet
 }
 
 export interface Progress {
@@ -47,6 +48,7 @@ export interface EmployeeChecklist {
   startDate: string
   progress: Progress
   groups: PhaseGroup[]
+  officeDays: number[] | null
 }
 
 export interface HrOverviewItem {
