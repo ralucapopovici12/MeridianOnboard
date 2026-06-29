@@ -3,7 +3,7 @@ import { Check, ClipboardList } from 'lucide-react'
 import { api } from '../api/client'
 import type { EmployeeChecklist } from '../api/types'
 import { PhaseCarousel } from '../components/PhaseCarousel'
-import { ProgressBar } from '../components/ProgressBar'
+import { TrainingSection } from '../components/TrainingSection'
 import { useCurrentEmployee } from '../context/CurrentEmployeeContext'
 import { formatDate } from '../lib/format'
 
@@ -139,6 +139,9 @@ export function OnboardingPage() {
       <div className="anim-slide-up delay-100" style={{ marginBottom: 32 }}>
         <PhaseCarousel groups={cl.groups} />
       </div>
+
+      {/* Mandatory training & acknowledgements */}
+      <TrainingSection employeeId={cl.employeeId} />
 
       {/* Task groups */}
       {cl.groups.map((group, gi) => (

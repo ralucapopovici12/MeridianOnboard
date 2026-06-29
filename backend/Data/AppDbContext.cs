@@ -10,6 +10,8 @@ public class AppDbContext : DbContext
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<OnboardingTask> OnboardingTasks => Set<OnboardingTask>();
+    public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
+    public DbSet<BoardTask> BoardTasks => Set<BoardTask>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +36,26 @@ public class AppDbContext : DbContext
 
             entity.HasOne(t => t.Employee)
                 .WithMany(e => e.Tasks)
+                .HasForeignKey(t => t.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<TimeEntry>(entity =>
+        {
+            entity.HasOne(t => t.Employee)
+                .WithMany()
+                .HasForeignKey(t => t.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<BoardTask>(entity =>
+        {
+            // Persist the status and priority as readable strings rather than ints.
+            entity.Property(t => t.Status).HasConversion<string>();
+            entity.Property(t => t.Priority).HasConversion<string>();
+
+            entity.HasOne(t => t.Employee)
+                .WithMany()
                 .HasForeignKey(t => t.EmployeeId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

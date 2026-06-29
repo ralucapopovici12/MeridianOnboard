@@ -8,6 +8,9 @@ public class Employee
     public required string Email { get; set; }
     public required string Role { get; set; }
 
+    /// <summary>PBKDF2 password hash ("iterations.salt.key"). Set for every seeded user.</summary>
+    public string? PasswordHash { get; set; }
+
     public int DepartmentId { get; set; }
     public Department? Department { get; set; }
 

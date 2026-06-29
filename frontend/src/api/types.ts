@@ -14,6 +14,7 @@ export interface Employee {
   currentProject: string | null
   isNewHire: boolean
   officeDays: number[] | null // 1=Mon … 5=Fri; null = not set yet
+  avatarUrl: string // bundled portrait, e.g. "/avatars/andrei.popa.jpg"
 }
 
 export interface Progress {
@@ -61,4 +62,52 @@ export interface HrOverviewItem {
   status: string
   currentPhaseLabel: string
   progress: Progress
+  avatarUrl: string
+}
+
+// --- Time clock ("pontaj") ---
+
+export interface TimeEntry {
+  id: number
+  date: string // ISO date
+  dateLabel: string
+  clockIn: string // ISO datetime
+  clockOut: string | null
+  location: string // "Office" | "Remote"
+  minutes: number | null
+}
+
+export interface Timesheet {
+  employeeId: number
+  todayLabel: string
+  todayLocation: string // planned location for today
+  isClockedIn: boolean
+  today: TimeEntry | null
+  recent: TimeEntry[]
+}
+
+// --- Personal task board ---
+
+export interface BoardTask {
+  id: number
+  key: string // e.g. "MER-12"
+  title: string
+  status: string // "Backlog" | "Todo" | "InProgress" | "InReview" | "Done"
+  priority: string // "Low" | "Medium" | "High" | "Urgent"
+  tag: string | null
+  orderIndex: number
+  assigneeId: number
+  assigneeName: string // person who owns this ticket
+  assigneeAvatarUrl: string // photo for the assignee
+}
+
+export interface BoardColumn {
+  status: string
+  label: string
+  tasks: BoardTask[]
+}
+
+export interface Board {
+  employeeId: number
+  columns: BoardColumn[]
 }

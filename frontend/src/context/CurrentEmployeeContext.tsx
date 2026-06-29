@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -18,6 +19,13 @@ interface CurrentEmployeeValue {
   error: string | null
   currentId: number | null
   current: Employee | null
+  isAuthenticated: boolean
+  /** Verify email + password against the API, then sign in. Throws on failure. */
+  login: (email: string, password: string) => Promise<void>
+  /** Demo shortcut: sign in as a known employee without a password. */
+  quickLogin: (id: number) => void
+  logout: () => void
+  /** Switch the active employee (used by HR to open a hire's checklist). */
   setCurrentId: (id: number) => void
 }
 
@@ -32,21 +40,29 @@ export function CurrentEmployeeProvider({ children }: { children: ReactNode }) {
     return stored ? Number(stored) : null
   })
 
-  const setCurrentId = (id: number) => {
+  const setCurrentId = useCallback((id: number) => {
     setCurrentIdState(id)
     localStorage.setItem(STORAGE_KEY, String(id))
-  }
+  }, [])
 
-  // Once employees load, make sure we have a sensible selection.
-  // Default to the newest hire so the demo opens on a live onboarding checklist.
+  const logout = useCallback(() => {
+    setCurrentIdState(null)
+    localStorage.removeItem(STORAGE_KEY)
+  }, [])
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const employee = await api.login(email, password)
+      setCurrentId(employee.id)
+    },
+    [setCurrentId],
+  )
+
+  // Drop a stale stored id (e.g. after a reseed) once the directory has loaded.
   useEffect(() => {
-    if (employees.length === 0) return
-    const stillValid = currentId != null && employees.some((e) => e.id === currentId)
-    if (stillValid) return
-
-    const firstNewHire = employees.find((e) => e.isNewHire)
-    setCurrentIdState((firstNewHire ?? employees[0]).id)
-  }, [employees, currentId])
+    if (loading || employees.length === 0 || currentId == null) return
+    if (!employees.some((e) => e.id === currentId)) logout()
+  }, [loading, employees, currentId, logout])
 
   const current = useMemo(
     () => employees.find((e) => e.id === currentId) ?? null,
@@ -59,6 +75,10 @@ export function CurrentEmployeeProvider({ children }: { children: ReactNode }) {
     error,
     currentId,
     current,
+    isAuthenticated: current != null,
+    login,
+    quickLogin: setCurrentId,
+    logout,
     setCurrentId,
   }
 

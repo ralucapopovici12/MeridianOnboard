@@ -34,7 +34,8 @@ public class HrController : ControllerBase
                 e.StartDate, OnboardingMetrics.DaysToStart(e.StartDate),
                 OnboardingMetrics.Status(e.StartDate),
                 OnboardingMetrics.CurrentPhaseLabel(e.Tasks),
-                OnboardingMetrics.Progress(e.Tasks)))
+                OnboardingMetrics.Progress(e.Tasks),
+                Avatars.UrlFor(e.Email)))
             .ToList();
     }
 }

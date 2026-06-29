@@ -36,7 +36,7 @@ public class EmployeesController : ControllerBase
             e.Id, e.FirstName, e.LastName, e.FirstName + " " + e.LastName,
             e.Email, e.Role, e.Department, e.DepartmentId,
             e.StartDate, e.IsHR, e.CurrentProject, e.IsNewHire,
-            ParseOfficeDays(e.OfficeDays))));
+            ParseOfficeDays(e.OfficeDays), Avatars.UrlFor(e.Email))));
     }
 
     /// <summary>A new hire's onboarding checklist, grouped by phase, with progress.</summary>
@@ -107,7 +107,7 @@ public class EmployeesController : ControllerBase
             emp.Id, emp.FirstName, emp.LastName, emp.FirstName + " " + emp.LastName,
             emp.Email, emp.Role, emp.Department!.Name, emp.DepartmentId,
             emp.StartDate, emp.IsHR, emp.CurrentProject, emp.Tasks.Any(),
-            ParseOfficeDays(emp.OfficeDays));
+            ParseOfficeDays(emp.OfficeDays), Avatars.UrlFor(emp.Email));
     }
 
     private static int[]? ParseOfficeDays(string? raw) =>

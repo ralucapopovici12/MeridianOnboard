@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
-import { Mail, Search, Sparkles } from 'lucide-react'
+import { Building2, House, Mail, MessageSquare, Search, Sparkles, Video } from 'lucide-react'
 import type { Employee } from '../api/types'
 import { Avatar } from '../components/Avatar'
 import { useCurrentEmployee } from '../context/CurrentEmployeeContext'
+import { scheduledLocation } from '../lib/format'
+import { PRESENCE_LABEL, presenceFor } from '../lib/presence'
 
 export function PeoplePage() {
-  const { employees, loading, error } = useCurrentEmployee()
+  const { employees, loading, error, currentId } = useCurrentEmployee()
   const [query, setQuery] = useState('')
 
   const filtered = useMemo(() => {
@@ -69,7 +71,9 @@ export function PeoplePage() {
           </div>
 
           <div className="people-grid">
-            {people.map((p) => <PersonCard key={p.id} person={p} />)}
+            {people.map((p) => (
+              <PersonCard key={p.id} person={p} isSelf={p.id === currentId} />
+            ))}
           </div>
         </div>
       ))}
@@ -77,19 +81,34 @@ export function PeoplePage() {
   )
 }
 
-function PersonCard({ person }: { person: Employee }) {
+function PersonCard({ person, isSelf }: { person: Employee; isSelf: boolean }) {
+  const handle = person.email.split('@')[0]
+  // Slack-first contact (how teams actually reach each other), with a Meet call
+  // and email as the formal/async fallback. Real Slack/Meet IDs would come from
+  // the integration; the deep links demonstrate the intended flow.
+  const slackHref = `https://slack.com/app_redirect?channel=@${handle}`
+  const meetHref = 'https://meet.google.com/new'
+
+  const presence = presenceFor(person.id, isSelf)
+  const onSite = scheduledLocation(person.officeDays) === 'Office'
+  const LocIcon = onSite ? Building2 : House
+
   return (
     <div className="person-card">
-      <div style={{ display: 'flex', gap: 12 }}>
-        <Avatar name={person.fullName} size="lg" />
+      <div className="person-card__head">
+        <span className="avatar-wrap">
+          <Avatar name={person.fullName} src={person.avatarUrl} size="lg" />
+          <span
+            className={`presence-dot presence-dot--${presence}`}
+            title={PRESENCE_LABEL[presence]}
+          />
+        </span>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <div className="person-card__name-row">
             <span className="person-card__name">{person.fullName}</span>
-            {person.isHR && (
-              <span className="pill pill--accent" style={{ fontSize: 10 }}>HR</span>
-            )}
+            {person.isHR && <span className="pill pill--accent person-card__tag">HR</span>}
             {person.isNewHire && (
-              <span className="pill pill--ok" style={{ fontSize: 10, gap: 3 }}>
+              <span className="pill pill--ok person-card__tag">
                 <Sparkles size={9} className="spin-slow" /> New
               </span>
             )}
@@ -98,11 +117,48 @@ function PersonCard({ person }: { person: Employee }) {
           {person.currentProject && (
             <div className="person-card__project">↳ {person.currentProject}</div>
           )}
-          <a href={`mailto:${person.email}`} className="person-card__email">
-            <Mail size={11} />
-            {person.email}
-          </a>
+          <div className="person-card__status">
+            <span className={`presence-text presence-text--${presence}`}>
+              {PRESENCE_LABEL[presence]}
+            </span>
+            <span className="person-card__status-sep">·</span>
+            <span className={`loc-chip loc-chip--${onSite ? 'office' : 'remote'}`}>
+              <LocIcon size={11} />
+              {onSite ? 'On-site' : 'Remote'}
+            </span>
+          </div>
         </div>
+      </div>
+
+      <div className="person-card__contact">
+        <a
+          className="contact-btn contact-btn--primary"
+          href={slackHref}
+          target="_blank"
+          rel="noreferrer"
+          title={`Message ${person.firstName} on Slack`}
+        >
+          <MessageSquare size={14} />
+          Message
+        </a>
+        <a
+          className="contact-btn contact-btn--icon"
+          href={meetHref}
+          target="_blank"
+          rel="noreferrer"
+          title={`Start a Google Meet with ${person.firstName}`}
+          aria-label={`Start a Google Meet with ${person.firstName}`}
+        >
+          <Video size={15} />
+        </a>
+        <a
+          className="contact-btn contact-btn--icon"
+          href={`mailto:${person.email}`}
+          title={person.email}
+          aria-label={`Email ${person.email}`}
+        >
+          <Mail size={15} />
+        </a>
       </div>
     </div>
   )

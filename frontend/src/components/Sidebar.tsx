@@ -1,10 +1,11 @@
-import { ClipboardList, Compass, LayoutDashboard, Users } from 'lucide-react'
+import { ClipboardList, Compass, LayoutDashboard, LayoutGrid, Users } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useCurrentEmployee } from '../context/CurrentEmployeeContext'
 import { Avatar } from './Avatar'
 
 const navItems = [
   { to: '/', label: 'My Onboarding', icon: ClipboardList, end: true },
+  { to: '/workspace', label: 'Workspace', icon: LayoutGrid },
   { to: '/people', label: 'People', icon: Users },
   { to: '/hr', label: 'HR Dashboard', icon: LayoutDashboard },
 ]
@@ -43,7 +44,7 @@ export function Sidebar() {
 
       {current && (
         <div className="erp-sidebar__footer">
-          <Avatar name={current.fullName} size="sm" />
+          <Avatar name={current.fullName} src={current.avatarUrl} size="sm" />
           <div style={{ minWidth: 0 }}>
             <div className="erp-sidebar__footer-name">{current.firstName}</div>
             <div className="erp-sidebar__footer-role">{current.role}</div>

@@ -4,12 +4,15 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { CurrentEmployeeProvider } from './context/CurrentEmployeeContext'
+import { TimesheetProvider } from './context/TimesheetContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <CurrentEmployeeProvider>
-        <App />
+        <TimesheetProvider>
+          <App />
+        </TimesheetProvider>
       </CurrentEmployeeProvider>
     </BrowserRouter>
   </StrictMode>,

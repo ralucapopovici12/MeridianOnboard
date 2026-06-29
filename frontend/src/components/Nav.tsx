@@ -1,16 +1,19 @@
-import { Compass } from 'lucide-react'
+import { Compass, LogOut } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useCurrentEmployee } from '../context/CurrentEmployeeContext'
 import { Avatar } from './Avatar'
+import { ClockControl } from './ClockControl'
 
 const links = [
-  { to: '/',       label: 'My Onboarding', end: true },
-  { to: '/people', label: 'People' },
-  { to: '/hr',     label: 'HR Dashboard' },
+  { to: '/',           label: 'Home', end: true },
+  { to: '/onboarding', label: 'My Onboarding' },
+  { to: '/workspace',  label: 'Workspace' },
+  { to: '/people',     label: 'People' },
+  { to: '/hr',         label: 'HR Dashboard' },
 ]
 
 export function Nav() {
-  const { employees, current, setCurrentId } = useCurrentEmployee()
+  const { current, logout } = useCurrentEmployee()
 
   return (
     <header className="dark-header">
@@ -40,26 +43,25 @@ export function Nav() {
         ))}
       </nav>
 
-      {/* User selector */}
+      {/* Clock + signed-in user */}
       <div className="dark-header__right">
-        <span className="dark-header__user-label">Viewing as</span>
+        <ClockControl />
+        <div className="dark-header__sep" style={{ margin: '13px 4px' }} />
         {current && (
-          <div style={{ opacity: 0.85 }}>
-            <Avatar name={current.fullName} size="sm" />
+          <div className="dark-header__user">
+            <Avatar name={current.fullName} src={current.avatarUrl} size="sm" />
+            <span className="dark-header__user-name">{current.fullName}</span>
           </div>
         )}
-        <select
-          aria-label="Select which employee you are"
-          value={current?.id ?? ''}
-          onChange={(e) => setCurrentId(Number(e.target.value))}
-          className="dark-header__select"
+        <button
+          type="button"
+          className="dark-header__logout"
+          onClick={logout}
+          aria-label="Log out"
+          title="Log out"
         >
-          {employees.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.fullName} — {e.role}
-            </option>
-          ))}
-        </select>
+          <LogOut size={15} />
+        </button>
       </div>
     </header>
   )

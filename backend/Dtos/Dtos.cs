@@ -13,9 +13,13 @@ public record EmployeeDto(
     bool IsHR,
     string? CurrentProject,
     bool IsNewHire,
-    int[]? OfficeDays);
+    int[]? OfficeDays,
+    string AvatarUrl);
 
 public record ProgressDto(int Completed, int Total, int Percent);
+
+/// <summary>Credentials for the login endpoint.</summary>
+public record LoginDto(string Email, string Password);
 
 public record TaskDto(
     int Id,
@@ -54,4 +58,53 @@ public record HrOverviewItemDto(
     int DaysToStart,
     string Status,
     string CurrentPhaseLabel,
-    ProgressDto Progress);
+    ProgressDto Progress,
+    string AvatarUrl);
+
+// --- Time clock ("pontaj") ---
+
+public record TimeEntryDto(
+    int Id,
+    DateOnly Date,
+    string DateLabel,
+    DateTime ClockIn,
+    DateTime? ClockOut,
+    string Location,
+    int? Minutes);
+
+/// <summary>Optional location chosen when starting the day ("Office" or "Remote").</summary>
+public record ClockInDto(string? Location);
+
+/// <summary>Change today's location after the fact ("Office" or "Remote").</summary>
+public record LocationUpdateDto(string Location);
+
+public record TimesheetDto(
+    int EmployeeId,
+    string TodayLabel,
+    string TodayLocation,
+    bool IsClockedIn,
+    TimeEntryDto? Today,
+    IReadOnlyList<TimeEntryDto> Recent);
+
+// --- Personal task board ---
+
+public record BoardTaskDto(
+    int Id,
+    string Key,
+    string Title,
+    string Status,
+    string Priority,
+    string? Tag,
+    int OrderIndex,
+    int AssigneeId,
+    string AssigneeName,
+    string AssigneeAvatarUrl);
+
+public record BoardColumnDto(
+    string Status,
+    string Label,
+    IReadOnlyList<BoardTaskDto> Tasks);
+
+public record BoardDto(int EmployeeId, IReadOnlyList<BoardColumnDto> Columns);
+
+public record BoardMoveDto(string Status);
