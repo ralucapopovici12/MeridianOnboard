@@ -117,7 +117,7 @@ public static class Seeder
             ("Read the Payments API codebase walkthrough", BoardStatus.InProgress, BoardPriority.Medium, "docs"),
             ("Fix the flaky unit test in the billing module", BoardStatus.InReview, BoardPriority.High, "backend"),
             ("Pick up your first \"good first issue\" ticket", BoardStatus.Todo, BoardPriority.Medium, "backend"),
-            ("Shadow Elena on a code review", BoardStatus.Backlog, BoardPriority.Low, "mentorship"),
+            ("Shadow Elena on a code review", BoardStatus.Todo, BoardPriority.Low, "mentorship"),
             ("Write down the setup gotchas you ran into", BoardStatus.Backlog, BoardPriority.Low, "docs"),
         });
         AddBoardTasks(db, ioana, new[]

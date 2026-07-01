@@ -1,14 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
-import { MapPin, ChevronLeft, ChevronRight, LayoutList, GripVertical, Users } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ChevronLeft, ChevronRight, LayoutList, GripVertical, Sparkles, Users } from 'lucide-react'
 import { api } from '../api/client'
 import type { Board, BoardTask } from '../api/types'
 import { useCurrentEmployee } from '../context/CurrentEmployeeContext'
-import { useTimesheet } from '../context/TimesheetContext'
-import { formatMinutes, formatTime, initials, locationLabel } from '../lib/format'
-
-function locationPill(location: string) {
-  return location === 'Office' ? 'pill pill--accent' : 'pill pill--neutral'
-}
+import { initials } from '../lib/format'
+import { BoardTour } from '../components/BoardTour'
 
 /** "InProgress" -> "inprogress", used to pick a column/status colour class. */
 function statusKey(status: string): string {
@@ -68,7 +64,6 @@ function CardAvatar({ task }: { task: BoardTask }) {
 
 export function WorkspacePage() {
   const { currentId, current } = useCurrentEmployee()
-  const { sheet } = useTimesheet()
 
   const [board, setBoard] = useState<Board | null>(null)
   const [teamBoard, setTeamBoard] = useState<Board | null>(null)
@@ -78,6 +73,10 @@ export function WorkspacePage() {
   // Drag-and-drop state.
   const [draggingId, setDraggingId] = useState<number | null>(null)
   const [dragOver, setDragOver] = useState<string | null>(null)
+
+  // First-time guided walkthrough of the board.
+  const boardRef = useRef<HTMLDivElement>(null)
+  const [tourOpen, setTourOpen] = useState(false)
 
   const load = useCallback(() => {
     if (currentId == null) return
@@ -98,6 +97,23 @@ export function WorkspacePage() {
   }, [currentId])
 
   useEffect(load, [load])
+
+  // Auto-run the walkthrough the first time this person opens a board with tickets.
+  useEffect(() => {
+    if (currentId == null || !board) return
+    const total = board.columns.reduce((n, c) => n + c.tasks.length, 0)
+    if (total === 0) return
+    if (!localStorage.getItem(`meridian.boardTourSeen.${currentId}`)) {
+      setTourOpen(true)
+    }
+  }, [board, currentId])
+
+  const closeTour = useCallback(() => {
+    if (currentId != null) {
+      localStorage.setItem(`meridian.boardTourSeen.${currentId}`, '1')
+    }
+    setTourOpen(false)
+  }, [currentId])
 
   const moveCard = useCallback(
     async (taskId: number, toStatus: string) => {
@@ -127,7 +143,10 @@ export function WorkspacePage() {
   const totalTasks = board.columns.reduce((n, c) => n + c.tasks.length, 0)
   const teamColumns = teamBoard?.columns ?? []
   const teamTasks = teamColumns.reduce((n, c) => n + c.tasks.length, 0)
-  const recent = sheet?.recent ?? []
+
+  // Sample ticket title used by the walkthrough's animated "move" demo.
+  const todoColumn = board.columns.find((c) => c.status === 'Todo')
+  const moveSampleTitle = todoColumn?.tasks[0]?.title ?? 'Your first ticket'
 
   return (
     <div>
@@ -144,7 +163,15 @@ export function WorkspacePage() {
       {/* ===== TASK BOARD ===== */}
       <div className="task-section__label" style={{ marginBottom: 12 }}>
         <span>My Board</span>
-        <span style={{ opacity: 0.6 }}>{totalTasks} tickets</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+          {totalTasks > 0 && (
+            <button className="tour-launch" onClick={() => setTourOpen(true)}>
+              <Sparkles size={12} />
+              Take a tour
+            </button>
+          )}
+          <span style={{ opacity: 0.6 }}>{totalTasks} tickets</span>
+        </span>
       </div>
 
       {totalTasks === 0 ? (
@@ -159,13 +186,14 @@ export function WorkspacePage() {
           </p>
         </div>
       ) : (
-        <div className="board anim-slide-up">
+        <div className="board anim-slide-up" ref={boardRef}>
           {board.columns.map((col, ci) => {
             const prevCol = board.columns[ci - 1]
             const nextCol = board.columns[ci + 1]
             return (
               <div
                 key={col.status}
+                data-tour-col={col.status}
                 className={`board-col${dragOver === col.status ? ' board-col--drop' : ''}`}
                 onDragOver={(e) => {
                   e.preventDefault()
@@ -299,40 +327,8 @@ export function WorkspacePage() {
         </>
       )}
 
-      {/* ===== RECENT TIME-CLOCK HISTORY ===== */}
-      {recent.length > 0 && (
-        <>
-          <div className="task-section__label" style={{ margin: '40px 0 12px' }}>
-            <span>Recent days</span>
-            <span style={{ opacity: 0.6 }}>Clock in from the header ↗</span>
-          </div>
-          <div className="hire-table anim-slide-up">
-            {recent.map((entry) => (
-              <div key={entry.id} className="hire-table__row">
-                <span style={{ width: 110, fontSize: 13, color: 'var(--text-body)' }}>
-                  {entry.dateLabel}
-                </span>
-                <span className={locationPill(entry.location)}>
-                  <MapPin size={10} style={{ marginRight: 3 }} />
-                  {locationLabel(entry.location)}
-                </span>
-                <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
-                  {formatTime(entry.clockIn)} → {entry.clockOut ? formatTime(entry.clockOut) : '—'}
-                </span>
-                <span
-                  style={{
-                    marginLeft: 'auto',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: 'var(--text)',
-                  }}
-                >
-                  {entry.minutes != null ? formatMinutes(entry.minutes) : '—'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </>
+      {tourOpen && (
+        <BoardTour boardRef={boardRef} moveSampleTitle={moveSampleTitle} onClose={closeTour} />
       )}
     </div>
   )
