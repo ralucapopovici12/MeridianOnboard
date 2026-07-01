@@ -1,0 +1,13 @@
+{
+  "name": "MeridianOnboard",
+  "short_name": "Meridian",
+  "description": "Mini ERP — onboarding & operations",
+  "theme_color": "#4F7C5A",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
