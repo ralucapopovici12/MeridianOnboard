@@ -111,3 +111,66 @@ export interface Board {
   employeeId: number
   columns: BoardColumn[]
 }
+
+// --- Weekly attendance (the "3 days in office" tracker) ---
+
+export interface WeekDay {
+  date: string // ISO date
+  dayName: string // "Mon"
+  dayLabel: string // "Jun 30"
+  location: string | null // "Office" | "Remote" | null
+  onLeave: boolean
+  leaveType: string | null
+  isToday: boolean
+  isPast: boolean
+}
+
+export interface Week {
+  employeeId: number
+  weekLabel: string
+  officeCount: number
+  officeTarget: number
+  days: WeekDay[]
+}
+
+// --- Leave / time off ---
+
+export interface LeaveBalance {
+  type: string
+  label: string
+  entitlement: number | null // null = event-based / as needed
+  used: number
+  remaining: number | null
+}
+
+export interface LeaveRequest {
+  id: number
+  type: string
+  typeLabel: string
+  startDate: string
+  endDate: string
+  days: number
+  status: string // "Pending" | "Approved" | "Declined" | "Cancelled"
+  note: string | null
+  createdAt: string
+}
+
+export interface LeaveOverview {
+  employeeId: number
+  balances: LeaveBalance[]
+  requests: LeaveRequest[]
+}
+
+export interface PendingLeave {
+  id: number
+  employeeId: number
+  employeeName: string
+  avatarUrl: string
+  type: string
+  typeLabel: string
+  startDate: string
+  endDate: string
+  days: number
+  note: string | null
+  createdAt: string
+}

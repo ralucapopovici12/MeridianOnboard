@@ -4,9 +4,13 @@ import type {
   Employee,
   EmployeeChecklist,
   HrOverviewItem,
+  LeaveOverview,
+  LeaveRequest,
+  PendingLeave,
   Progress,
   Task,
   Timesheet,
+  Week,
 } from './types'
 
 // Requests go to "/api/...", which Vite proxies to the backend on :5000 (see vite.config.ts).
@@ -59,6 +63,30 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ location }),
     }),
+
+  // Weekly attendance (3-days-in-office tracker)
+  getWeek: (employeeId: number) => request<Week>(`/employees/${employeeId}/week`),
+
+  // Leave / time off
+  getLeave: (employeeId: number) => request<LeaveOverview>(`/employees/${employeeId}/leave`),
+  createLeave: (
+    employeeId: number,
+    body: { type: string; startDate: string; endDate: string; note: string | null },
+  ) =>
+    request<LeaveOverview>(`/employees/${employeeId}/leave`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+  cancelLeave: (requestId: number) =>
+    request<LeaveOverview>(`/leave-requests/${requestId}/cancel`, { method: 'PATCH' }),
+  decideLeave: (requestId: number, approve: boolean) =>
+    request<LeaveRequest>(`/leave-requests/${requestId}/decision`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ approve }),
+    }),
+  getPendingLeave: () => request<PendingLeave[]>('/hr/leave'),
 
   // Personal task board
   getBoard: (employeeId: number) =>

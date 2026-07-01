@@ -1,4 +1,4 @@
-import { ClipboardList, Compass, LayoutDashboard, LayoutGrid, Users } from 'lucide-react'
+import { CalendarDays, ClipboardList, Compass, LayoutDashboard, LayoutGrid, Users } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useCurrentEmployee } from '../context/CurrentEmployeeContext'
 import { Avatar } from './Avatar'
@@ -6,6 +6,7 @@ import { Avatar } from './Avatar'
 const navItems = [
   { to: '/', label: 'My Onboarding', icon: ClipboardList, end: true },
   { to: '/workspace', label: 'Workspace', icon: LayoutGrid },
+  { to: '/time-off', label: 'Time Off', icon: CalendarDays },
   { to: '/people', label: 'People', icon: Users },
   { to: '/hr', label: 'HR Dashboard', icon: LayoutDashboard },
 ]

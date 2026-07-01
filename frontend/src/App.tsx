@@ -8,6 +8,7 @@ import { HrDashboardPage } from './pages/HrDashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { PeoplePage } from './pages/PeoplePage'
+import { TimeOffPage } from './pages/TimeOffPage'
 import { WorkspacePage } from './pages/WorkspacePage'
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
             <Route path="/"           element={<HomePage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/workspace"  element={<WorkspacePage />} />
+            <Route path="/time-off"   element={<TimeOffPage />} />
             <Route path="/people"     element={<PeoplePage />} />
             <Route path="/resources/:id" element={<DocPage />} />
             <Route path="/hr"         element={<HrDashboardPage />} />

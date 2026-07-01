@@ -1,13 +1,15 @@
-import { Compass, LogOut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useCurrentEmployee } from '../context/CurrentEmployeeContext'
 import { Avatar } from './Avatar'
 import { ClockControl } from './ClockControl'
+import { LogoMark } from './Logo'
 
 const links = [
   { to: '/',           label: 'Home', end: true },
   { to: '/onboarding', label: 'My Onboarding' },
   { to: '/workspace',  label: 'Workspace' },
+  { to: '/time-off',   label: 'Time Off' },
   { to: '/people',     label: 'People' },
   { to: '/hr',         label: 'HR Dashboard' },
 ]
@@ -20,7 +22,7 @@ export function Nav() {
       {/* Logo */}
       <a href="/" className="dark-header__logo">
         <span className="dark-header__logo-mark">
-          <Compass size={14} strokeWidth={2.5} />
+          <LogoMark size={16} tone="inverse" title="" />
         </span>
         <span className="dark-header__logo-name">Meridian</span>
       </a>

@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Building2,
   CalendarClock,
+  Check,
   Mail,
   MessageSquare,
   TrendingUp,
@@ -11,7 +12,9 @@ import {
   X,
 } from 'lucide-react'
 import { api } from '../api/client'
-import type { Employee, HrOverviewItem } from '../api/types'
+import type { Employee, HrOverviewItem, PendingLeave } from '../api/types'
+import { LEAVE_EMOJI } from '../components/LeaveRequestModal'
+import { formatDate } from '../lib/format'
 import { Avatar } from '../components/Avatar'
 import { ProgressBar } from '../components/ProgressBar'
 import { useCurrentEmployee } from '../context/CurrentEmployeeContext'
@@ -48,6 +51,21 @@ export function HrDashboardPage() {
   const [dept, setDept] = useState<string | null>(null)
 
   const hires = useMemo(() => data ?? [], [data])
+
+  // HR's leave-approval queue.
+  const [pending, setPending] = useState<PendingLeave[]>([])
+  useEffect(() => {
+    api.getPendingLeave().then(setPending).catch(() => {})
+  }, [])
+
+  async function decide(id: number, approve: boolean) {
+    try {
+      await api.decideLeave(id, approve)
+      setPending((p) => p.filter((r) => r.id !== id))
+    } catch {
+      /* ignore */
+    }
+  }
 
   // Company-at-a-glance, all derived from the real directory.
   const stats = useMemo(() => {
@@ -189,6 +207,43 @@ export function HrDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Leave approval queue */}
+      {pending.length > 0 && (
+        <div className="hire-table anim-slide-up delay-100" style={{ marginTop: 28 }}>
+          <div className="hire-table__head">
+            <span className="hire-table__head-title">Pending time-off requests</span>
+            <span className="pill pill--warn">{pending.length} to review</span>
+          </div>
+
+          {pending.map((p) => (
+            <div key={p.id} className="hire-table__row">
+              <Avatar name={p.employeeName} src={p.avatarUrl} size="md" />
+
+              <div style={{ flex: 1, minWidth: 150 }}>
+                <div style={{ fontWeight: 600, fontSize: 13.5, color: 'var(--text)' }}>
+                  {p.employeeName}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
+                  {LEAVE_EMOJI[p.type] ?? '📅'} {p.typeLabel} · {formatDate(p.startDate)}
+                  {p.startDate !== p.endDate && ` – ${formatDate(p.endDate)}`} · {p.days} day
+                  {p.days === 1 ? '' : 's'}
+                  {p.note && <span style={{ color: 'var(--text-subtle)' }}> · {p.note}</span>}
+                </div>
+              </div>
+
+              <div className="leave-approve">
+                <button className="leave-approve__yes" onClick={() => decide(p.id, true)}>
+                  <Check size={14} /> Approve
+                </button>
+                <button className="leave-approve__no" onClick={() => decide(p.id, false)}>
+                  <X size={14} /> Decline
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* New hires */}
       <div className="hire-table anim-slide-up delay-200" style={{ marginTop: 28 }}>
