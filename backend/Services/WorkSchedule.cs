@@ -31,4 +31,27 @@ public static class WorkSchedule
         "remote" => "Remote",
         _ => null,
     };
+
+    /// <summary>How many days per week an employee is expected in the office.</summary>
+    public const int OfficeTarget = 3;
+
+    /// <summary>Monday of the week containing <paramref name="date"/>.</summary>
+    public static DateOnly MondayOf(DateOnly date)
+    {
+        int offset = ((int)date.DayOfWeek + 6) % 7; // Mon=0 … Sun=6
+        return date.AddDays(-offset);
+    }
+
+    /// <summary>Number of weekdays (Mon–Fri) in an inclusive date range.</summary>
+    public static int WorkingDays(DateOnly start, DateOnly end)
+    {
+        if (end < start) return 0;
+        int count = 0;
+        for (var d = start; d <= end; d = d.AddDays(1))
+        {
+            if (d.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday))
+                count++;
+        }
+        return count;
+    }
 }

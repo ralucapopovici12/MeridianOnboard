@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<OnboardingTask> OnboardingTasks => Set<OnboardingTask>();
     public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
     public DbSet<BoardTask> BoardTasks => Set<BoardTask>();
+    public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +54,18 @@ public class AppDbContext : DbContext
             // Persist the status and priority as readable strings rather than ints.
             entity.Property(t => t.Status).HasConversion<string>();
             entity.Property(t => t.Priority).HasConversion<string>();
+
+            entity.HasOne(t => t.Employee)
+                .WithMany()
+                .HasForeignKey(t => t.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<LeaveRequest>(entity =>
+        {
+            // Persist type and status as readable strings rather than ints.
+            entity.Property(t => t.Type).HasConversion<string>();
+            entity.Property(t => t.Status).HasConversion<string>();
 
             entity.HasOne(t => t.Employee)
                 .WithMany()

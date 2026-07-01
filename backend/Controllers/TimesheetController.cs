@@ -105,6 +105,59 @@ public class TimesheetController : ControllerBase
         return await BuildTimesheet(employee);
     }
 
+    /// <summary>
+    /// The current week (Mon–Fri) with each day's Office/Remote/leave status and a
+    /// running count toward the "3 days in office" policy. Leave days don't count.
+    /// </summary>
+    [HttpGet("{id:int}/week")]
+    public async Task<ActionResult<WeekDto>> GetWeek(int id)
+    {
+        var employee = await _db.Employees.FirstOrDefaultAsync(e => e.Id == id);
+        if (employee is null) return NotFound();
+
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var monday = WorkSchedule.MondayOf(today);
+        var friday = monday.AddDays(4);
+
+        var entries = await _db.TimeEntries
+            .Where(t => t.EmployeeId == id && t.Date >= monday && t.Date <= friday)
+            .ToListAsync();
+
+        var leaves = await _db.LeaveRequests
+            .Where(l => l.EmployeeId == id
+                        && l.Status == LeaveStatus.Approved
+                        && l.StartDate <= friday && l.EndDate >= monday)
+            .ToListAsync();
+
+        var days = new List<WeekDayDto>();
+        var officeCount = 0;
+
+        for (var i = 0; i < 5; i++)
+        {
+            var date = monday.AddDays(i);
+            var leave = leaves.FirstOrDefault(l => l.StartDate <= date && l.EndDate >= date);
+            var entry = entries.FirstOrDefault(t => t.Date == date);
+            var location = leave is not null ? null : entry?.Location;
+
+            if (location == "Office") officeCount++;
+
+            days.Add(new WeekDayDto(
+                date,
+                date.ToString("ddd", CultureInfo.InvariantCulture),
+                date.ToString("MMM d", CultureInfo.InvariantCulture),
+                location,
+                leave is not null,
+                leave?.Type.Label(),
+                date == today,
+                date < today));
+        }
+
+        var weekLabel =
+            $"{monday.ToString("MMM d", CultureInfo.InvariantCulture)} – {friday.ToString("MMM d", CultureInfo.InvariantCulture)}";
+
+        return new WeekDto(id, weekLabel, officeCount, WorkSchedule.OfficeTarget, days);
+    }
+
     private async Task<TimesheetDto> BuildTimesheet(Employee employee)
     {
         var today = DateOnly.FromDateTime(DateTime.Now);

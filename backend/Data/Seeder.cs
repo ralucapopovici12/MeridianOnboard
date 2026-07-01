@@ -143,6 +143,20 @@ public static class Seeder
         AddTimeHistory(db, ioana, today, daysBack: 7);
         AddTimeHistory(db, stefan, today, daysBack: 7);
 
+        // Leave requests — a mix of approved (for balances/history) and pending (HR's queue).
+        AddLeave(db, bogdan, LeaveType.Annual, today.AddDays(12), today.AddDays(16),
+            LeaveStatus.Pending, "Family trip planned before joining", DateTime.Now.AddHours(-6));
+
+        AddLeave(db, ioana, LeaveType.Annual, today.AddDays(-24), today.AddDays(-20),
+            LeaveStatus.Approved, "Spring break", DateTime.Now.AddDays(-28), DateTime.Now.AddDays(-26));
+        AddLeave(db, ioana, LeaveType.Study, today.AddDays(7), today.AddDays(7),
+            LeaveStatus.Pending, "University exam", DateTime.Now.AddDays(-1));
+
+        AddLeave(db, stefan, LeaveType.BloodDonation, today.AddDays(-6), today.AddDays(-6),
+            LeaveStatus.Approved, null, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(-7));
+        AddLeave(db, stefan, LeaveType.Annual, today.AddDays(20), today.AddDays(24),
+            LeaveStatus.Pending, "Summer holiday", DateTime.Now.AddDays(-2));
+
         // Everyone shares the same demo password (shown on the login screen).
         foreach (var employee in db.Employees.Local)
             employee.PasswordHash = Services.PasswordHasher.Hash(DemoPassword);
@@ -171,6 +185,25 @@ public static class Seeder
                 OrderIndex = order,
             });
         }
+    }
+
+    /// <summary>Seeds one leave request.</summary>
+    private static void AddLeave(
+        AppDbContext db, Employee employee, LeaveType type,
+        DateOnly start, DateOnly end, LeaveStatus status, string? note,
+        DateTime createdAt, DateTime? decidedAt = null)
+    {
+        db.LeaveRequests.Add(new LeaveRequest
+        {
+            Employee = employee,
+            Type = type,
+            StartDate = start,
+            EndDate = end,
+            Status = status,
+            Note = note,
+            CreatedAt = createdAt,
+            DecidedAt = decidedAt,
+        });
     }
 
     /// <summary>

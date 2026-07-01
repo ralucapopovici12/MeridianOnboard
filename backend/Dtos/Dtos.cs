@@ -108,3 +108,65 @@ public record BoardColumnDto(
 public record BoardDto(int EmployeeId, IReadOnlyList<BoardColumnDto> Columns);
 
 public record BoardMoveDto(string Status);
+
+// --- Weekly attendance (the "3 days in office" tracker) ---
+
+public record WeekDayDto(
+    DateOnly Date,
+    string DayName,      // "Mon"
+    string DayLabel,     // "Jun 30"
+    string? Location,    // "Office" | "Remote" | null (not recorded)
+    bool OnLeave,
+    string? LeaveType,   // human label if on leave
+    bool IsToday,
+    bool IsPast);
+
+public record WeekDto(
+    int EmployeeId,
+    string WeekLabel,    // "Jun 30 – Jul 4"
+    int OfficeCount,
+    int OfficeTarget,
+    IReadOnlyList<WeekDayDto> Days);
+
+// --- Leave / time off ---
+
+public record LeaveBalanceDto(
+    string Type,
+    string Label,
+    int? Entitlement,    // null = event-based / as needed
+    int Used,
+    int? Remaining);
+
+public record LeaveRequestDto(
+    int Id,
+    string Type,
+    string TypeLabel,
+    DateOnly StartDate,
+    DateOnly EndDate,
+    int Days,
+    string Status,
+    string? Note,
+    DateTime CreatedAt);
+
+public record LeaveOverviewDto(
+    int EmployeeId,
+    IReadOnlyList<LeaveBalanceDto> Balances,
+    IReadOnlyList<LeaveRequestDto> Requests);
+
+public record CreateLeaveDto(string Type, DateOnly StartDate, DateOnly EndDate, string? Note);
+
+public record LeaveDecisionDto(bool Approve);
+
+/// <summary>A pending request as seen by HR, carrying who it belongs to.</summary>
+public record PendingLeaveDto(
+    int Id,
+    int EmployeeId,
+    string EmployeeName,
+    string AvatarUrl,
+    string Type,
+    string TypeLabel,
+    DateOnly StartDate,
+    DateOnly EndDate,
+    int Days,
+    string? Note,
+    DateTime CreatedAt);
