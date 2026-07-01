@@ -1,11 +1,45 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Check, ClipboardList } from 'lucide-react'
+import { Check, ClipboardList, Sparkles } from 'lucide-react'
 import { api } from '../api/client'
 import type { EmployeeChecklist } from '../api/types'
 import { PhaseCarousel } from '../components/PhaseCarousel'
 import { TrainingSection } from '../components/TrainingSection'
+import { GuidedTour, useGuidedTour, type TourStep } from '../components/GuidedTour'
 import { useCurrentEmployee } from '../context/CurrentEmployeeContext'
 import { formatDate } from '../lib/format'
+
+const ONBOARDING_TOUR: TourStep[] = [
+  {
+    title: 'Welcome to your onboarding 👋',
+    body: 'Here’s a quick tour of your first month at Meridian.',
+  },
+  {
+    target: 'ob-progress',
+    title: 'Your progress',
+    body: 'See how far you are through your first-month checklist at a glance.',
+  },
+  {
+    target: 'ob-phases',
+    title: 'Three phases',
+    body: 'Your month is split into Pre-Day 1, Week 1, and Weeks 2–4.',
+  },
+  {
+    target: 'ob-training',
+    title: 'Mandatory videos',
+    body: 'Watch the required training videos and acknowledge the policy docs here — a few are mandatory before your first day.',
+    hint: true,
+  },
+  {
+    target: 'ob-tasks',
+    title: 'Tick tasks off',
+    body: 'Click any task to mark it done — your progress updates instantly.',
+    hint: true,
+  },
+  {
+    title: 'You’re ready!',
+    body: 'Work through the checklist at your own pace. Welcome aboard!',
+  },
+]
 
 function recompute(cl: EmployeeChecklist, taskId: number): EmployeeChecklist {
   const groups = cl.groups.map((g) => {
@@ -27,22 +61,11 @@ function fillClass(pct: number) {
   return 'prog-fill prog-fill--err'
 }
 
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-
 export function OnboardingPage() {
   const { currentId, current } = useCurrentEmployee()
   const [cl, setCl]           = useState<EmployeeChecklist | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
-  const [officeDays, setOfficeDays]       = useState<number[]>([])
-  const [scheduleSaved, setScheduleSaved] = useState(false)
-
-  useEffect(() => {
-    if (cl) {
-      setOfficeDays(cl.officeDays ?? [])
-      setScheduleSaved((cl.officeDays?.length ?? 0) === 3)
-    }
-  }, [cl?.employeeId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const load = useCallback(() => {
     if (currentId == null) return
@@ -57,23 +80,12 @@ export function OnboardingPage() {
 
   useEffect(load, [load])
 
-  async function toggleDay(day: number) {
-    if (!cl) return
-    const next = officeDays.includes(day)
-      ? officeDays.filter(d => d !== day)
-      : officeDays.length < 3 ? [...officeDays, day] : officeDays
-
-    if (next === officeDays) return
-    setOfficeDays(next)
-    setScheduleSaved(false)
-
-    if (next.length === 3) {
-      try {
-        await api.updateSchedule(cl.employeeId, next)
-        setScheduleSaved(true)
-      } catch { /* silent — UI already shows the selection */ }
-    }
-  }
+  // First-visit walkthrough (runs once the checklist has loaded).
+  const tour = useGuidedTour(currentId != null ? `meridian.tour.onboarding.${currentId}` : null)
+  const { autoStartIfNew } = tour
+  useEffect(() => {
+    if (cl && cl.groups.length > 0) autoStartIfNew()
+  }, [cl, autoStartIfNew])
 
   async function toggle(taskId: number) {
     if (!cl) return
@@ -112,12 +124,16 @@ export function OnboardingPage() {
             <p className="page-sub">
               {current.role} · {current.department} · Starts {formatDate(current.startDate)}
             </p>
+            <button className="tour-launch" style={{ marginTop: 12 }} onClick={tour.start}>
+              <Sparkles size={12} />
+              Take a tour
+            </button>
           </div>
         </div>
       </div>
 
       {/* Progress hero */}
-      <div className="prog-hero anim-slide-up" style={{ marginBottom: 28 }}>
+      <div className="prog-hero anim-slide-up" data-tour="ob-progress" style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
             <div className="prog-hero__label">First month progress</div>
@@ -136,7 +152,7 @@ export function OnboardingPage() {
       </div>
 
       {/* Phase overview */}
-      <div className="anim-slide-up delay-100" style={{ marginBottom: 32 }}>
+      <div className="anim-slide-up delay-100" data-tour="ob-phases" style={{ marginBottom: 32 }}>
         <PhaseCarousel groups={cl.groups} />
       </div>
 
@@ -148,6 +164,7 @@ export function OnboardingPage() {
         <div
           key={group.phase}
           className="task-section anim-slide-up"
+          data-tour={gi === 0 ? 'ob-tasks' : undefined}
           style={{ animationDelay: `${160 + gi * 55}ms` }}
         >
           <div className="task-section__label">
@@ -176,75 +193,7 @@ export function OnboardingPage() {
         </div>
       ))}
 
-      {/* Hybrid schedule picker */}
-      <div
-        className="task-section anim-slide-up"
-        style={{ animationDelay: `${160 + cl.groups.length * 55 + 55}ms` }}
-      >
-        <div className="task-section__label">
-          <span>Work Schedule</span>
-          {scheduleSaved && (
-            <span style={{ color: 'var(--ok)', fontSize: 11, fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>
-              Saved
-            </span>
-          )}
-        </div>
-
-        <div className="glass-card glass-card--solid glass-card--no-hover" style={{ padding: '20px 24px' }}>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.55 }}>
-            Meridian's hybrid policy is{' '}
-            <strong style={{ color: 'var(--text)' }}>3 days in office</strong> and 2 days remote.
-            Select your in-office days below.
-          </p>
-
-          <div style={{ display: 'flex', gap: 8 }}>
-            {DAY_LABELS.map((label, i) => {
-              const day     = i + 1
-              const isOffice  = officeDays.includes(day)
-              const isDisabled = !isOffice && officeDays.length >= 3
-              return (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => toggleDay(day)}
-                  disabled={isDisabled}
-                  style={{
-                    flex: 1,
-                    padding: '10px 4px',
-                    borderRadius: 'var(--r-md)',
-                    border: isOffice
-                      ? '1px solid rgba(107,63,255,0.50)'
-                      : '1px solid var(--border)',
-                    background: isOffice
-                      ? 'var(--accent-soft)'
-                      : 'rgba(255,255,255,0.03)',
-                    color: isOffice ? 'var(--accent-bright)' : 'var(--text-subtle)',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    fontFamily: 'inherit',
-                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    opacity: isDisabled ? 0.35 : 1,
-                    transition: 'all var(--t-fast)',
-                    textAlign: 'center',
-                    lineHeight: 1,
-                  }}
-                >
-                  <div>{label}</div>
-                  <div style={{ fontSize: 10, fontWeight: 400, marginTop: 4, opacity: 0.8 }}>
-                    {isOffice ? 'Office' : 'Remote'}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-
-          {officeDays.length < 3 && (
-            <p style={{ fontSize: 11.5, color: 'var(--text-subtle)', marginTop: 12, marginBottom: 0 }}>
-              Select {3 - officeDays.length} more day{3 - officeDays.length !== 1 ? 's' : ''} to complete your schedule
-            </p>
-          )}
-        </div>
-      </div>
+      {tour.open && <GuidedTour steps={ONBOARDING_TOUR} onClose={tour.close} />}
     </div>
   )
 }

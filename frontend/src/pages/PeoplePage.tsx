@@ -1,10 +1,33 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Building2, House, Mail, MessageSquare, Search, Sparkles, Video } from 'lucide-react'
 import type { Employee } from '../api/types'
 import { Avatar } from '../components/Avatar'
+import { GuidedTour, useGuidedTour, type TourStep } from '../components/GuidedTour'
 import { useCurrentEmployee } from '../context/CurrentEmployeeContext'
 import { scheduledLocation } from '../lib/format'
 import { PRESENCE_LABEL, presenceFor } from '../lib/presence'
+
+const PEOPLE_TOUR: TourStep[] = [
+  {
+    title: 'The people directory',
+    body: 'Everyone at Meridian lives here — the fastest way to find who to ask about X.',
+  },
+  {
+    target: 'people-search',
+    title: 'Search anyone',
+    body: 'Filter instantly by name, role, team, or what someone is working on.',
+    hint: true,
+  },
+  {
+    target: 'people-card',
+    title: 'Everything on one card',
+    body: 'Role, current project, whether they’re on-site or remote, live presence, and one-click Message, Meet or Email.',
+  },
+  {
+    title: 'That’s the directory!',
+    body: 'Reach out to a teammate whenever you’re stuck — that’s what they’re here for.',
+  },
+]
 
 export function PeoplePage() {
   const { employees, loading, error, currentId } = useCurrentEmployee()
@@ -28,6 +51,16 @@ export function PeoplePage() {
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
   }, [filtered])
 
+  // First-visit walkthrough.
+  const tour = useGuidedTour(currentId != null ? `meridian.tour.people.${currentId}` : null)
+  const { autoStartIfNew } = tour
+  useEffect(() => {
+    if (!loading && !error && employees.length > 0) autoStartIfNew()
+  }, [loading, error, employees.length, autoStartIfNew])
+
+  // Anchor the "person card" tour step to the very first card on the page.
+  const firstPersonId = byDepartment[0]?.[1][0]?.id ?? null
+
   if (loading) return <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading directory…</p>
   if (error)   return <p style={{ color: 'var(--err)',       fontSize: 14 }}>{error}</p>
 
@@ -38,9 +71,13 @@ export function PeoplePage() {
         <div>
           <h1 className="page-title">People</h1>
           <p className="page-sub">Who does what — so you know who to ask about X.</p>
+          <button className="tour-launch" style={{ marginTop: 10 }} onClick={tour.start}>
+            <Sparkles size={12} />
+            Take a tour
+          </button>
         </div>
 
-        <div className="search-box" style={{ width: 260 }}>
+        <div className="search-box" data-tour="people-search" style={{ width: 260 }}>
           <Search size={14} className="search-box__icon" />
           <input
             type="search"
@@ -72,16 +109,31 @@ export function PeoplePage() {
 
           <div className="people-grid">
             {people.map((p) => (
-              <PersonCard key={p.id} person={p} isSelf={p.id === currentId} />
+              <PersonCard
+                key={p.id}
+                person={p}
+                isSelf={p.id === currentId}
+                tourAnchor={p.id === firstPersonId}
+              />
             ))}
           </div>
         </div>
       ))}
+
+      {tour.open && <GuidedTour steps={PEOPLE_TOUR} onClose={tour.close} />}
     </div>
   )
 }
 
-function PersonCard({ person, isSelf }: { person: Employee; isSelf: boolean }) {
+function PersonCard({
+  person,
+  isSelf,
+  tourAnchor,
+}: {
+  person: Employee
+  isSelf: boolean
+  tourAnchor?: boolean
+}) {
   const handle = person.email.split('@')[0]
   // Slack-first contact (how teams actually reach each other), with a Meet call
   // and email as the formal/async fallback. Real Slack/Meet IDs would come from
@@ -94,7 +146,7 @@ function PersonCard({ person, isSelf }: { person: Employee; isSelf: boolean }) {
   const LocIcon = onSite ? Building2 : House
 
   return (
-    <div className="person-card">
+    <div className="person-card" data-tour={tourAnchor ? 'people-card' : undefined}>
       <div className="person-card__head">
         <span className="avatar-wrap">
           <Avatar name={person.fullName} src={person.avatarUrl} size="lg" />

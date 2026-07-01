@@ -13,7 +13,7 @@ export function TrainingSection({ employeeId }: { employeeId: number }) {
   const allDone = completed === total
 
   return (
-    <div className="task-section anim-slide-up" style={{ marginBottom: 32 }}>
+    <div className="task-section anim-slide-up" data-tour="ob-training" style={{ marginBottom: 32 }}>
       <div className="task-section__label">
         <span>
           <ShieldCheck size={13} style={{ marginRight: 6, verticalAlign: '-2px' }} />
